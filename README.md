@@ -2,7 +2,7 @@
 
 SampleTask is a simple REST API.
 
-It’s built with JavaScript – a very light [node](https://nodejs.org) plus [express](http://expressjs.com) server, [mongo](https://www.mongodb.com/) database.
+It’s built with JavaScript – a very light [node](https://nodejs.org) plus [express](http://expressjs.com) server, [sequelize](https://sequelize.org/) with [postgres](https://www.postgresql.org/) database.
 
 ## Table of Contents
 
