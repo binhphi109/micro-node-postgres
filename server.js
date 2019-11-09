@@ -1,16 +1,14 @@
 'use strict';
 
 var config = require('./lib/config'),
-  mongoose = require('./lib/mongoose'),
+  sequelize = require('./lib/sequelize'),
   express = require('./lib/express'),
   chalk = require('chalk');
 
 module.exports.init = function init(callback) {
-  var _this = this;
-
-  mongoose.connect(function (db) {
+  sequelize.connect(function (db) {
     // Initialize Models
-    mongoose.loadModels();
+    sequelize.loadModels(db);
 
     // Initialize express
     var app = express.init(db);
@@ -19,9 +17,7 @@ module.exports.init = function init(callback) {
 };
 
 module.exports.start = function start(callback) {
-  var _this = this;
-
-  _this.init(function (app, db, config) {
+  this.init(function (app, db, config) {
     // Start the app by listening on <port>
     app.listen(config.port, function () {
 
@@ -38,7 +34,7 @@ module.exports.start = function start(callback) {
 };
 
 module.exports.close = function close(callback) {
-  mongoose.disconnect(function (db) {
+  sequelize.disconnect(function (db) {
     if (callback) callback();
   });
 };

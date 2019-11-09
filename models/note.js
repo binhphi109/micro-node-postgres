@@ -1,28 +1,23 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-var mongoose = require('mongoose'),
-  Schema = mongoose.Schema;
+var model = (sequelize, DataTypes) => {
+  var Note = sequelize.define('note', {
+    content: {
+      type: DataTypes.STRING,
+    },
+    created: {
+      type: DataTypes.DATE
+    },
+    userId: {
+      type: DataTypes.INTEGER
+    },
+  });
 
-/**
- * Note Schema
- */
-var NoteSchema = new Schema({
-  content: {
-    type: String,
-    default: '',
-    required: 'Please fill Note content',
-  },
-  created: {
-    type: Date,
-    default: Date.now
-  },
-  user: {
-    type: Schema.ObjectId,
-    ref: 'User'
-  }
-});
+  Note.associate = models => {
+    Note.belongsTo(models.User);
+  };
 
-module.exports = mongoose.model('Note', NoteSchema);
+  return { Note };
+}
+  
+module.exports = model;

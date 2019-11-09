@@ -1,69 +1,51 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-var mongoose = require('mongoose'),
-  Schema = mongoose.Schema,
-  crypto = require('crypto'),
+var crypto = require('crypto'),
   jwt = require('jsonwebtoken'),
   config = require('../lib/config');
 
-var UserSchema = new Schema({
-  email: {
-    type: String,
-    unique: true,
-    lowercase: true,
-    trim: true,
-    default: ''
-  },
-  username: {
-    type: String,
-    unique: 'Username already exists',
-    required: 'Please fill in a username',
-    lowercase: true,
-    trim: true
-  },
-  password: {
-    type: String,
-    default: ''
-  },
-  salt: {
-    type: String
-  },
-  created: {
-    type: Date,
-    default: Date.now
-  }
-});
-
-UserSchema.pre('save', function (next) {
-  if (this.password && this.isModified('password')) {
-    this.salt = crypto.randomBytes(16).toString('base64');
-    this.password = this.hashPassword(this.password);
-  }
-
-  next();
-});
-
-UserSchema.methods.hashPassword = function (password) {
-  if (this.salt && password) {
-    return crypto.pbkdf2Sync(password, new Buffer(this.salt, 'base64'), 10000, 512, 'sha512').toString('base64');
-  } else {
-    return password;
-  }
-};
-
-UserSchema.methods.authenticate = function (password) {
-  return this.password === this.hashPassword(password);
-};
-
-UserSchema.methods.generateJWT = function () {
-  return jwt.sign({
-    _id: this._id
-  }, config.tokenSecret, {
-    expiresIn: config.tokenExpiresIn,
+var model = (sequelize, DataTypes) => {
+  var User = sequelize.define('user', {
+    email: {
+      type: DataTypes.TEXT,
+      unique: true,
+    },
+    username: {
+      type: DataTypes.STRING,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.TEXT,
+    },
+    salt: {
+      type: DataTypes.TEXT,
+    },
+    created: {
+      type: DataTypes.DATE,
+    },
   });
-};
 
-module.exports = mongoose.model('User', UserSchema);
+  User.associate = models => {
+    User.hasMany(models.Note);
+  };
+
+  User.hashPassword = function (password, salt) {
+    if (salt && password) {
+      return crypto.pbkdf2Sync(password, new Buffer(salt, 'base64'), 10000, 512, 'sha512').toString('base64');
+    } else {
+      return password;
+    }
+  };
+
+  User.generateJWT = function (user) {
+    return jwt.sign({
+      _id: user._id
+    }, config.tokenSecret, {
+      expiresIn: config.tokenExpiresIn,
+    });
+  };
+
+  return { User };
+}
+
+module.exports = model;

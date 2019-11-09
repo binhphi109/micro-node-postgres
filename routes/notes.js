@@ -56,6 +56,4 @@ module.exports = function (app) {
   app.route(baseUrl + 'Notes/:noteId').all(policy.isAllowed)
     .get(api.read);
 
-  // Finish by binding the Note middleware
-  app.param('noteId', api.noteByID);
 };

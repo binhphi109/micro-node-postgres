@@ -6,26 +6,28 @@
 var path = require('path'),
   errorHandler = require('./errors'),
   config = require('../lib/config'),
-  mongoose = require('mongoose'),
+  sequelize = require('sequelize'),
   passport = require('passport'),
-  User = mongoose.model('User');
+  crypto = require('crypto'),
+  User = sequelize.model('User');
 
 exports.signup = function (req, res) {
-  // Init Variables
-  var user = new User(req.body);
-  var message = null;
 
-  // Add missing user fields
-  user.provider = 'local';
+  var username = req.body.username,
+    password = req.body.password,
+    email = req.body.email,
+    salt = crypto.randomBytes(16).toString('base64'),
+    created = Date.now();
 
-  // Then save the user
-  user.save(function (err) {
-    if (err) {
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
-    } 
+  var hashedPassword = User.hashPassword(password, salt);
 
+  User.create({
+    email,
+    username,
+    password: hashedPassword,
+    salt,
+    created,
+  }).then(user => {
     // Remove sensitive data before login
     user.password = undefined;
     user.salt = undefined;
@@ -35,6 +37,10 @@ exports.signup = function (req, res) {
     res.json({
       'token': 'JWT ' + token,
       user,
+    });
+  }).catch(err => {
+    res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
     });
   });
 };
