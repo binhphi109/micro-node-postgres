@@ -1,12 +1,8 @@
 'use strict';
-
-var model = (sequelize, DataTypes) => {
-  var Note = sequelize.define('note', {
+module.exports = (sequelize, DataTypes) => {
+  var Note = sequelize.define('Note', {
     content: {
       type: DataTypes.STRING,
-    },
-    created: {
-      type: DataTypes.DATE
     },
     userId: {
       type: DataTypes.INTEGER
@@ -14,10 +10,8 @@ var model = (sequelize, DataTypes) => {
   });
 
   Note.associate = models => {
-    Note.belongsTo(models.User);
+    Note.belongsTo(models.User, { foreignKey: 'userId' });
   };
 
-  return { Note };
-}
-  
-module.exports = model;
+  return Note;
+};

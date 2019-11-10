@@ -14,18 +14,17 @@ var _ = require('lodash'),
  */
 exports.create = function(req, res) {
 
-  var content = req.body.content,
-    created = Date.now();
+  var content = req.body.content;
 
   Note.create({
     content,
     userId: req.user.id,
-    created,
   }).then(note => {
 
     res.jsonp(note);
 
   }).catch(err => {
+    console.error('Error: ', err);
     res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
@@ -42,6 +41,7 @@ exports.read = function(req, res) {
     },
   }).then(note => {
     if (!note) {
+      console.error('Error: ', err);
       return res.status(404).send({
         message: 'No Note with that identifier has been found'
       });
@@ -49,6 +49,7 @@ exports.read = function(req, res) {
 
     res.jsonp(note);
   }).catch(err => {
+    console.error('Error: ', err);
     res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
@@ -62,11 +63,12 @@ exports.list = function(req, res) {
 
   Note.findAll({ 
     where: { 
-      'user': req.user
+      'userId': req.user.id,
     } 
   }).then(notes => {
     res.jsonp(notes);
   }).catch(err => {
+    console.error('Error: ', err);
     res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });

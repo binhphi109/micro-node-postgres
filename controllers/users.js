@@ -8,39 +8,43 @@ var path = require('path'),
   config = require('../lib/config'),
   sequelize = require('sequelize'),
   passport = require('passport'),
-  crypto = require('crypto'),
+  bcrypt = require('bcrypt'),
   User = sequelize.model('User');
 
 exports.signup = function (req, res) {
 
   var username = req.body.username,
     password = req.body.password,
-    email = req.body.email,
-    salt = crypto.randomBytes(16).toString('base64'),
-    created = Date.now();
+    email = req.body.email;
 
-  var hashedPassword = User.hashPassword(password, salt);
+  bcrypt.hash(password, 16, (err, hashedPassword) => {
+    if (err) {
+      console.error('Error: ', err);
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    }
 
-  User.create({
-    email,
-    username,
-    password: hashedPassword,
-    salt,
-    created,
-  }).then(user => {
-    // Remove sensitive data before login
-    user.password = undefined;
-    user.salt = undefined;
-
-    var token = user.generateJWT();
-
-    res.json({
-      'token': 'JWT ' + token,
-      user,
-    });
-  }).catch(err => {
-    res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
+    User.create({
+      email,
+      username,
+      password: hashedPassword,
+    }).then(user => {
+      // Remove sensitive data before login
+      user.password = undefined;
+      user.salt = undefined;
+  
+      var token = User.generateJWT(user);
+  
+      res.json({
+        'token': 'JWT ' + token,
+        user,
+      });
+    }).catch(err => {
+      console.error('Error: ', err);
+      res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
     });
   });
 };
@@ -48,6 +52,7 @@ exports.signup = function (req, res) {
 exports.signin = function (req, res, next) {
   passport.authenticate('local', function (err, user, info) {
     if (err || !user) {
+      console.error('Error: ', err);
       return res.status(400).send(info);
     } 
 
@@ -55,7 +60,7 @@ exports.signin = function (req, res, next) {
     user.password = undefined;
     user.salt = undefined;
 
-    var token = user.generateJWT();
+    var token = User.generateJWT(user);
 
     res.json({
       'token': 'JWT ' + token,
