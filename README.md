@@ -17,7 +17,7 @@ You can either run it manually or using Docker commands to spawns up all the sta
 #### Manually
 
 1. Go to `sample-task`
-2. Set `db.uri` in the `./lib/config.js` file to your mongodb uri
+2. Set `db.uri` in the `lib/config.js` file to your mongodb uri
 3. Run the following commands:
     1. `npm install`
     2. `npm test`
